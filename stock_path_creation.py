@@ -57,17 +57,28 @@ for j in range(int(m/depth)):
 
 print("finished")
 
-
-train_signature_data = torch.stack(train_signature_data, dim = 0)
+# Converting to tensors
+train_signature_data = torch.stack(train_signature_data, dim = 0).squeeze(1)
 test_signature_data = torch.stack(test_signature_data, dim = 0)
 
-'''
+#extracting mean and variances over columns
+column_mean = torch.mean(train_signature_data, dim = 0)
+column_std = torch.std(train_signature_data, dim = 0)
+
+#Unsqueezing again
+train_signature_data = ((train_signature_data- column_mean)/column_std).unsqueeze(1)
+print(train_signature_data.shape)
+
+def get_mean_std():
+    return column_mean, column_std
+
+
 torch.save(train_signature_data, 'train_sig_data.pt')
 torch.save(test_signature_data, 'test_sig_data.pt')
 loaded_tensor = torch.load('train_sig_data.pt')
 print(loaded_tensor.shape)
 print(loaded_tensor[0,0,:])
-'''
+
 
 
 # for i in range(int(loaded_tensor.shape[2]/4)):

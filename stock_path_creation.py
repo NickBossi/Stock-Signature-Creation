@@ -34,9 +34,11 @@ def main():
     # Initiating empty list which will hold all signatures
     train_signature_data = []
     test_signature_data = []
+    rolling_train_data = []
 
     # Getting dimensions of data to be looped over
     n = train_data.shape[1]
+    print(n)
     m = test_data.shape[1]
 
     num_samples = int(n/depth)
@@ -45,6 +47,12 @@ def main():
     tempdf = train_data[:,0:depth,:]
     signature = signatory.signature(path = tempdf, depth = depth)
     inverse = invert_signature(signature=signature, depth=depth, channels = 2)[:,1:,]
+
+    for i in range(n-depth+1):
+        temp_data = train_data[:,i:i+10,:]
+        temp_signature = signatory.signature(path = temp_data, depth = depth)
+        rolling_train_data.append(temp_signature)
+
 
     for i in range(num_samples):
         temp_data = train_data[:,i*depth:(i+1)*depth,:]
@@ -61,18 +69,19 @@ def main():
     # Converting to tensors
     train_signature_data = torch.stack(train_signature_data, dim = 0)
     test_signature_data = torch.stack(test_signature_data, dim = 0)
+    rolling_train_data = torch.stack(rolling_train_data, dim = 0)
 
-    #extracting mean and variances over columns
-    # column_mean = torch.mean(train_signature_data, dim = 0)
-    # column_std = torch.std(train_signature_data, dim = 0)
-
-    print(train_signature_data.shape)
+    # Ensuring all the data is captured by the rolling window
+    print(rolling_train_data[0])
+    print(train_signature_data[0])
+    print(rolling_train_data[-1])
+    print(train_signature_data[-1])
+    print(rolling_train_data.shape)
 
     torch.save(train_signature_data, '../VAE/data/train_sig_data.pt')
     torch.save(test_signature_data, '../VAE/data/test_sig_data.pt')
-    loaded_tensor = torch.load('data/train_sig_data.pt')
-    print(loaded_tensor.shape)
-    print(loaded_tensor[0,0,:])
+    torch.save(rolling_train_data, '../VAE/data/rolling_train_data.pt')
+    
 
 if __name__ == "__main__":
     main()

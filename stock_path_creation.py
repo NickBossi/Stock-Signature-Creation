@@ -13,12 +13,6 @@ torch.cuda.empty_cache()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def get_mean_std():
-    train_sig_data = torch.load('data/train_sig_data.pt')
-    column_mean = torch.mean(train_sig_data, dim = 0)
-    column_std = torch.std(train_sig_data, dim = 0)
-    return column_mean, column_std
-
 def main():
 
     depth = 10
@@ -43,15 +37,13 @@ def main():
 
     # Getting dimensions of data to be looped over
     n = train_data.shape[1]
-    print(n)
     m = test_data.shape[1]
-    print(m)
+
     num_samples = int(n/depth)
 
+    # Testing on first 10 days of data
     tempdf = train_data[:,0:depth,:]
-
     signature = signatory.signature(path = tempdf, depth = depth)
-
     inverse = invert_signature(signature=signature, depth=depth, channels = 2)[:,1:,]
 
     for i in range(num_samples):
@@ -67,19 +59,17 @@ def main():
     print("finished")
 
     # Converting to tensors
-    train_signature_data = torch.stack(train_signature_data, dim = 0).squeeze(1)
+    train_signature_data = torch.stack(train_signature_data, dim = 0)
     test_signature_data = torch.stack(test_signature_data, dim = 0)
 
     #extracting mean and variances over columns
-    column_mean = torch.mean(train_signature_data, dim = 0)
-    column_std = torch.std(train_signature_data, dim = 0)
+    # column_mean = torch.mean(train_signature_data, dim = 0)
+    # column_std = torch.std(train_signature_data, dim = 0)
 
-    #Unsqueezing again
-    train_signature_data = ((train_signature_data- column_mean)/column_std).unsqueeze(1)
     print(train_signature_data.shape)
 
-    torch.save(train_signature_data, 'data/train_sig_data.pt')
-    torch.save(test_signature_data, 'data/test_sig_data.pt')
+    torch.save(train_signature_data, '../VAE/data/train_sig_data.pt')
+    torch.save(test_signature_data, '../VAE/data/test_sig_data.pt')
     loaded_tensor = torch.load('data/train_sig_data.pt')
     print(loaded_tensor.shape)
     print(loaded_tensor[0,0,:])
